@@ -1,0 +1,5 @@
+Introduction
+
+
+KeyboardAwareViewController is a convinient subclass of UIVIewController, designed for iPhone to take care of the annoying task of scrolling the UI when the keyboard pops up and block half of your scrren.
+
