@@ -22,6 +22,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1F6CEDAE15285ADB00BEC94C /* UIView+KeyboardAwareness.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UIView+KeyboardAwareness.h"; sourceTree = "<group>"; };
+		1F6CEDAF15285ADB00BEC94C /* UIView+KeyboardAwareness.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIView+KeyboardAwareness.m"; sourceTree = "<group>"; };
 		9A29518013C1B2010060602B /* Keyboard-Aware-ViewController.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Keyboard-Aware-ViewController.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9A29518413C1B2010060602B /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		9A29518613C1B2010060602B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -132,6 +134,8 @@
 		9AFB900E13C5F2E200AEFF0C /* KeyboardAwareViewController */ = {
 			isa = PBXGroup;
 			children = (
+				1F6CEDAE15285ADB00BEC94C /* UIView+KeyboardAwareness.h */,
+				1F6CEDAF15285ADB00BEC94C /* UIView+KeyboardAwareness.m */,
 				9AFB900F13C5F2E200AEFF0C /* KeyboardAwareViewController.h */,
 				9AFB901013C5F2E200AEFF0C /* KeyboardAwareViewController.m */,
 			);
