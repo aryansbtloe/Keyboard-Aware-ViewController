@@ -11,7 +11,7 @@
 
 @interface KeyboardAwareViewController()
 @property (nonatomic , retain) UIScrollView *enclosingScrollView;
-@property (nonatomic , readonly) UIView *thresholdView;
+@property (nonatomic , readonly) UIView *firstResponderView;
 @property (nonatomic , assign , readwrite) BOOL shouldAdjustLayoutForKeyboard;
 @property (nonatomic , assign , readwrite) BOOL isToolbarSet;
 @property (nonatomic , assign) CGRect originalViewFrame;
@@ -28,7 +28,7 @@
 @synthesize isToolbarSet;
 
 #pragma mark - Getters
--(UIView *) thresholdView
+-(UIView *) firstResponderView
 {
     UIResponder *firstResponder = [self.view findFirstResponder];
     if ([firstResponder isKindOfClass:[UIView class]])
@@ -111,56 +111,44 @@
             CGRect keyboardFrame = [keyboardFrameValue CGRectValue];
             
             keyboardFrame = [self.view convertRect:keyboardFrame fromView:self.view.window];
-            CGRect frame = self.enclosingScrollView.frame;
+            CGRect visibleAreaFrame = self.enclosingScrollView.frame;
             // Keep the original frame of our view so it'll stay the same.
             
             // Now we are resizing the scroll view to fit the remaining area of the screen
-            frame.size.height -= keyboardFrame.size.height;
+            visibleAreaFrame.size.height -= keyboardFrame.size.height;
             
             // Setting the resized frame
-            self.enclosingScrollView.frame = frame;
+            self.enclosingScrollView.frame = visibleAreaFrame;
             // Restoring the original frame to the view.
             // This is done because sometimes when you change the frame 
             // of the superview, the subview's frame, might change too.
             self.view.frame = self.originalViewFrame;
+            
             // Thershold point is the lowest point that we want to be visible. 
             // In other words it's the lowest point of the threshold view
-            UIView *thresholdView = self.thresholdView;
-            CGPoint thresholdOrigin = [self.view convertPoint:thresholdView.frame.origin fromView:thresholdView.superview];
-            float thresholdPoint = thresholdOrigin.y + self.thresholdView.frame.size.height;
-            // Padding is just for more pleasant result to the eye. 
-            float padding = 10.0;
+            UIView *firstResponderView = self.firstResponderView;
+            CGFloat visibleAreaHeight = visibleAreaFrame.size.height;
+            CGPoint currentFirstResponderViewOrigin = [self.view convertPoint:firstResponderView.frame.origin fromView:firstResponderView.superview];
             
-            UIWindow *window = self.view.window;
-            float windowHeight = window.frame.size.height;
-            if (UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation))
-            {
-                windowHeight = window.frame.size.width;
-            }
-            float topOfKeyboard = windowHeight - keyboardFrame.size.height;
+            // We want it to be in the center of the remaining visible area.
+            CGFloat desiredFirstResponderViewOriginY = (visibleAreaHeight - self.firstResponderView.frame.size.height) / 2;
+            
+            CGFloat maxScrollPossible = self.view.frame.size.height - visibleAreaHeight;
+            
             // Offset is the amount of scrolling that need to be made 
             // in order to get the threshold point inside the visible area.
-            float offset = (thresholdPoint - topOfKeyboard) + padding;
+            CGFloat offset = (currentFirstResponderViewOrigin.y - desiredFirstResponderViewOriginY);
             // When the threshold point is already in the visible area the offset will be < 0.
             // In that case we don't want to make any scrolling.
             offset = MAX(offset, 0);
+            offset = MIN(offset, maxScrollPossible);
             
-            // Based on the offset, now we create the rect for the visible area that we want to scroll to.
-            CGSize size = CGSizeMake(keyboardFrame.size.width, topOfKeyboard);
-            CGPoint origin = self.view.frame.origin;
-            /* ATTENTION
-             * This is the most important line. Here we are using the 
-             * offet to scroll to the right position.
-             */
-            origin.y += offset;
-            CGRect visible;
-            visible.origin = origin;
-            visible.size = size;
-            
-            // Finally, Scroll!
-            if (visible.origin.y != self.view.frame.origin.y)
+            if (offset != 0)
             {
-                [self.enclosingScrollView scrollRectToVisible:visible animated:YES];
+                CGPoint contentOffset = self.enclosingScrollView.contentOffset;
+                contentOffset.y += offset;
+                // Finally, Scroll!
+                [self.enclosingScrollView setContentOffset:contentOffset animated:YES];
             }
         }
     }
