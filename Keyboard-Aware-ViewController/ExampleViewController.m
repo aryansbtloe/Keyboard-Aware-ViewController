@@ -34,8 +34,8 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    self.txtPassword.inputAccessoryView = self.keyboardToolbar;
-    self.txtUsername.inputAccessoryView = self.keyboardToolbar;
+    self.txtPassword.inputAccessoryView = self.inputAccessoryView;
+    self.txtUsername.inputAccessoryView = self.inputAccessoryView;
 }
 
 - (void)viewDidUnload

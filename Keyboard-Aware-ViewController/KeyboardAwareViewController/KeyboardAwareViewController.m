@@ -8,22 +8,22 @@
 
 #import "KeyboardAwareViewController.h"
 #import "UIView+KeyboardAwareness.h"
-#define TOOLBAR_HEIGHT 44
 
 @interface KeyboardAwareViewController()
 @property (nonatomic , retain) UIScrollView *enclosingScrollView;
 @property (nonatomic , readonly) UIView *thresholdView;
-@property (nonatomic , assign , readwrite) BOOL isInKeyboardLayout;
+@property (nonatomic , assign , readwrite) BOOL shouldAdjustLayoutForKeyboard;
 @property (nonatomic , assign , readwrite) BOOL isToolbarSet;
 @property (nonatomic , assign) CGRect originalViewFrame;
+
+-(void) removeFromNotificationCenter;
+-(void) signInForNotifications;
 @end
 
 @implementation KeyboardAwareViewController
-
 @synthesize enclosingScrollView;
-@synthesize keyboardToolbar;
-@synthesize isInKeyboardLayout = _isInKeyboardLayout;
-@synthesize shouldUseDefaultToolBar = _shouldDisplayToolBar;
+@synthesize inputAccessoryView;
+@synthesize shouldAdjustLayoutForKeyboard = _shouldAdjustLayoutForKeyboard;
 @synthesize originalViewFrame;
 @synthesize isToolbarSet;
 
@@ -39,30 +39,21 @@
     return nil;
 }
 
-
--(UIToolbar *) defaultToolbar
+-(void) removeFromNotificationCenter
 {
-    CGFloat width = [UIApplication sharedApplication].keyWindow.frame.size.width;
-    if (UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation))
-    {
-        width = [UIApplication sharedApplication].keyWindow.frame.size.height;
-    }
-    UIToolbar *toReturn = [[UIToolbar alloc] initWithFrame:CGRectMake(0, 0 - TOOLBAR_HEIGHT, width, TOOLBAR_HEIGHT)];
-    UIBarButtonItem *hideKeyboard = [[UIBarButtonItem alloc] initWithTitle:@"Dismiss" style:UIBarButtonItemStyleDone target:self action:@selector(hideKeyboard)];
-    [toReturn setItems:[NSArray arrayWithObject:hideKeyboard]];
-    [hideKeyboard release];
-    
-    return [toReturn autorelease];
+    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+    [center removeObserver:self name:UIKeyboardWillShowNotification object:nil];
+    [center removeObserver:self name:UIKeyboardDidShowNotification object:nil];
+    [center removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 }
 
 -(void) signInForNotifications
 {
+    [self removeFromNotificationCenter];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(setupToolbar:) name:UIKeyboardWillShowNotification object:nil];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(scrollForKeyboardLayout:) name:UIKeyboardDidShowNotification object:nil];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(returnToNormalLayout:) name:UIKeyboardWillHideNotification object:nil];
 }
-
-
 
 -(void) setupToolbar : (NSNotification *) notification
 {
@@ -71,22 +62,15 @@
         UIResponder *responder = [self.view.window findFirstResponder];
         if (responder)
         {
-            if (responder.inputAccessoryView) 
+            if (responder.inputAccessoryView != nil) 
             {
-                if ([responder.inputAccessoryView isKindOfClass:[UIToolbar class]])
-                {
-                    self.keyboardToolbar = (UIToolbar *)responder.inputAccessoryView;
-                }
+                self.inputAccessoryView = (UIToolbar *)responder.inputAccessoryView;
             }
             else
             {
                 if ([responder respondsToSelector:@selector(setInputAccessoryView:)])
                 {
-                    if (self.shouldUseDefaultToolBar || (self.keyboardToolbar == nil))
-                    {
-                        self.keyboardToolbar = [self defaultToolbar];
-                    }
-                    [(UITextField *)responder setInputAccessoryView:self.keyboardToolbar];
+                    [(UITextField *)responder setInputAccessoryView:self.inputAccessoryView];
                     self.isToolbarSet = YES;
                     [responder reloadInputViews];
                 }
@@ -96,15 +80,33 @@
     }
 }
 
+-(id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
+{
+    if (self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])
+    {
+        self.shouldAdjustLayoutForKeyboard = YES;
+    }
+    return self;
+}
+
+-(id) initWithCoder:(NSCoder *)aDecoder
+{
+    if (self = [super initWithCoder:aDecoder])
+    {
+        self.shouldAdjustLayoutForKeyboard = YES;
+    }
+    return self;
+}
+
 -(void) scrollForKeyboardLayout : (NSNotification *) notification
 {
     // The notification is invoked mutiple times for some reason.
     // This is to make sure that all the calculations will be done only once.
-    if (! self.isInKeyboardLayout)
+    if (self.shouldAdjustLayoutForKeyboard)
     {
-        if (! self.isInKeyboardLayout)
+        if (self.shouldAdjustLayoutForKeyboard)
         {
-            self.isInKeyboardLayout = YES;
+            self.shouldAdjustLayoutForKeyboard = NO;
             NSValue *keyboardFrameValue = [notification.userInfo objectForKey:UIKeyboardFrameEndUserInfoKey];
             CGRect keyboardFrame = [keyboardFrameValue CGRectValue];
             
@@ -160,8 +162,6 @@
             {
                 [self.enclosingScrollView scrollRectToVisible:visible animated:YES];
             }
-            
-            // Mark as finished so we won't do it twice and mess everything up.
         }
     }
 }
@@ -169,7 +169,7 @@
 -(void) returnToNormalLayout : (NSNotification *) notification
 {
     // Check if we are in keyboard layout.
-    if (self.isInKeyboardLayout)
+    if (self.shouldAdjustLayoutForKeyboard == NO)
     {
         NSValue *keyboardFrameValue = [notification.userInfo objectForKey:UIKeyboardFrameEndUserInfoKey];
         NSNumber *animationDuration = [notification.userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey];
@@ -189,7 +189,7 @@
         // Scrolling back to original state
         [self.enclosingScrollView scrollRectToVisible:visible animated:YES];
         // Marking as "not in keyboard layout".
-        self.isInKeyboardLayout = NO;
+        self.shouldAdjustLayoutForKeyboard = YES;
         self.isToolbarSet = NO;
     }
 }
@@ -230,7 +230,7 @@
 -(void) viewWillDisappear:(BOOL)animated
 {
     [super viewWillDisappear:animated];
-    if (self.isInKeyboardLayout)
+    if (self.shouldAdjustLayoutForKeyboard)
     {
         [self hideKeyboard];
     }
@@ -239,15 +239,15 @@
 - (void)viewDidUnload
 {
     [super viewDidUnload];
-	[[NSNotificationCenter defaultCenter] removeObserver:self];
+    [self removeFromNotificationCenter];
 	self.enclosingScrollView = nil;
 }
 
 - (void)dealloc
 {
-	[[NSNotificationCenter defaultCenter] removeObserver:self];
+    [self removeFromNotificationCenter];
 	self.enclosingScrollView = nil;
-    self.keyboardToolbar = nil;
+    self.inputAccessoryView = nil;
     [super dealloc];
 }
 @end

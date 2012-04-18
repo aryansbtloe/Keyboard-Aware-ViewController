@@ -167,6 +167,9 @@
 /* Begin PBXProject section */
 		9A29517713C1B2000060602B /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0430;
+			};
 			buildConfigurationList = 9A29517A13C1B2000060602B /* Build configuration list for PBXProject "Keyboard-Aware-ViewController" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
@@ -281,6 +284,7 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Keyboard-Aware-ViewController/Keyboard-Aware-ViewController-Prefix.pch";
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = "Keyboard-Aware-ViewController/Keyboard-Aware-ViewController-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
@@ -294,6 +298,7 @@
 				COPY_PHASE_STRIP = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Keyboard-Aware-ViewController/Keyboard-Aware-ViewController-Prefix.pch";
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = "Keyboard-Aware-ViewController/Keyboard-Aware-ViewController-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				VALIDATE_PRODUCT = YES;

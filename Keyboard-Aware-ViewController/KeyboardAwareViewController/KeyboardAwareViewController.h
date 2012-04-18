@@ -9,7 +9,6 @@
 #import <UIKit/UIKit.h>
 
 @interface KeyboardAwareViewController : UIViewController 
-@property (nonatomic , retain) IBOutlet UIToolbar *keyboardToolbar;
-@property (nonatomic , assign) BOOL shouldUseDefaultToolBar;
+@property (nonatomic , retain) IBOutlet UIView *inputAccessoryView;
 -(IBAction) hideKeyboard;
 @end
